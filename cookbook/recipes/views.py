@@ -22,15 +22,21 @@ def add_product_to_recipe(request):
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     product = get_object_or_404(Product, pk=product_id)
 
-    recipe_product, created = RecipeProduct.objects.update_or_create(
-        recipe=recipe, product=product, defaults={"weight": weight}
-    )
+    recipe_product = RecipeProduct.objects.filter(
+        recipe=recipe, product=product
+    ).first()
 
-    return HttpResponse(
-        f"Продукт '{product.name}' "
-        f"{'добавлен в рецепт' if created else 'обновлен в рецепте'} "
-        f"'{recipe.name}'"
-    )
+    if recipe_product:
+        recipe_product.weight = weight
+        recipe_product.save()
+        action = "обновлен в рецепте"
+    else:
+        recipe_product = RecipeProduct.objects.create(
+            recipe=recipe, product=product, weight=weight
+        )
+        action = "добавлен в рецепт"
+
+    return HttpResponse(f"Продукт '{product.name}' {action} '{recipe.name}'")
 
 
 def cook_recipe(request):
@@ -47,7 +53,7 @@ def cook_recipe(request):
 
 
 def show_recipes_without_product(request):
-    """"Отображает рецепты, где продукт отсутствует или его вес менее 10 г."""
+    """ "Отображает рецепты, где продукт отсутствует или его вес менее 10 г."""
     product_id = request.GET.get("product_id")
 
     if not product_id:

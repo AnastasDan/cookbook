@@ -50,6 +50,7 @@ class RecipeProduct(models.Model):
         ordering = ("id",)
         verbose_name = "продукт в рецепте"
         verbose_name_plural = "Продукты в рецептах"
+        unique_together = (("recipe", "product"),)
 
     def __str__(self):
         return f"{self.product.name} ({self.weight} г)"
